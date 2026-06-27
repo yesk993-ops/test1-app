@@ -8,8 +8,8 @@ WORKDIR /app
 # Copy package files first for better caching
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci --only=production
+# Install dependencies (force node_modules to exist even if empty)
+RUN npm ci --only=production && mkdir -p node_modules
 
 # Copy application code
 COPY . .
