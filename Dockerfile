@@ -9,7 +9,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies
-RUN npm ci --only=production
+RUN npm ci --only=production && mkdir -p node_modules
 
 # Copy application code
 COPY . .
