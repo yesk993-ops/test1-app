@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  # ============================================
+  # DEV Environment
+  # ============================================
+  app-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: jenkins-demo-dev
+    ports:
+      - "3001:3000"
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - APP_VERSION=1.0.0
+      - ENVIRONMENT=development
+      - GIT_BRANCH=dev
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  # ============================================
+  # QA Environment
+  # ============================================
+  app-qa:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: jenkins-demo-qa
+    ports:
+      - "3002:3000"
+    environment:
+      - NODE_ENV=testing
+      - PORT=3000
+      - APP_VERSION=1.0.0
+      - ENVIRONMENT=qa
+      - GIT_BRANCH=qa
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  # ============================================
+  # PRODUCTION Environment
+  # ============================================
+  app-prod:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: jenkins-demo-prod
+    ports:
+      - "3003:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - APP_VERSION=1.0.0
+      - ENVIRONMENT=production
+      - GIT_BRANCH=main
+    restart: unless-stopped
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge

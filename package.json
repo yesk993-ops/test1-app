@@ -1,0 +1,14 @@
+{
+  "name": "jenkins-branch-demo",
+  "version": "1.0.0",
+  "description": "Sample project to demonstrate multi-branch Git workflow, Jenkins pipelines, and Docker deployment",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node test.js",
+    "lint": "echo 'Linting passed (no linter configured yet)'"
+  },
+  "keywords": ["jenkins", "docker", "ci-cd", "multi-branch"],
+  "author": "DevOps Demo",
+  "license": "MIT"
+}
