@@ -6,6 +6,6 @@ npm-debug.log
 *.md
 docker-compose*.yml
 Jenkinsfile
-test.js
+# test.js is needed for npm test during build
 .github
 .vscode
