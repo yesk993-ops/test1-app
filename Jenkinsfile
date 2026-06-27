@@ -1,6 +1,6 @@
 // ============================================
-// Jenkins Declarative Pipeline
-// Multi-Branch CI/CD Pipeline
+// Jenkins Multibranch Pipeline
+// Auto-discovers branches and PRs
 // ============================================
 
 pipeline {
@@ -11,14 +11,6 @@ pipeline {
         APP_NAME = 'jenkins-branch-demo'
         DOCKER_REGISTRY = 'docker.io/your-registry'
         DOCKER_IMAGE = "${DOCKER_REGISTRY}/${APP_NAME}"
-        NODE_VERSION = '20'
-        DOCKER_COMPOSE_VERSION = '2.24.0'
-    }
-
-    // Trigger pipeline on different branch events
-    triggers {
-        // Poll SCM every 5 minutes (for demonstration)
-        pollSCM('H/5 * * * *')
     }
 
     options {
@@ -28,17 +20,27 @@ pipeline {
         timestamps()
     }
 
+    triggers {
+        pollSCM('H/5 * * * *')
+    }
+
     stages {
         // ============================================
-        // STAGE 1: Checkout & Display Branch Info
+        // STAGE 1: Checkout & Display Context
         // ============================================
         stage('Checkout') {
             steps {
                 script {
+                    def isPR = env.BRANCH_NAME.startsWith('PR-')
+                    def branchType = isPR ? 'Pull Request' : 'Branch'
                     echo "============================================"
+                    echo "  Build Type: ${branchType}"
                     echo "  Branch: ${env.BRANCH_NAME}"
                     echo "  Commit: ${env.GIT_COMMIT?.take(8)}"
                     echo "  Build Number: ${env.BUILD_NUMBER}"
+                    if (isPR) {
+                        echo "  PR Number: ${env.BRANCH_NAME.replace('PR-', '')}"
+                    }
                     echo "============================================"
                 }
                 checkout scm
@@ -46,7 +48,7 @@ pipeline {
         }
 
         // ============================================
-        // STAGE 2: Build & Test
+        // STAGE 2: Build & Test (runs on ALL branches & PRs)
         // ============================================
         stage('Build & Test') {
             steps {
@@ -59,7 +61,7 @@ pipeline {
         }
 
         // ============================================
-        // STAGE 3: Code Quality Check
+        // STAGE 3: Code Quality (runs on ALL branches & PRs)
         // ============================================
         stage('Code Quality') {
             steps {
@@ -69,7 +71,23 @@ pipeline {
         }
 
         // ============================================
-        // STAGE 4: Deploy to DEV (only on dev branch)
+        // STAGE 4: PR Validation (ONLY for Pull Requests)
+        // ============================================
+        stage('PR Validation') {
+            when {
+                branch pattern: 'PR-*', comparator: 'GLOB'
+            }
+            steps {
+                script {
+                    echo '📋 Validating Pull Request...'
+                    echo "PR ${env.BRANCH_NAME} - All checks passed!"
+                    echo "Ready for review and merge."
+                }
+            }
+        }
+
+        // ============================================
+        // STAGE 5: Deploy to DEV (dev branch only)
         // ============================================
         stage('Deploy to DEV') {
             when {
@@ -84,7 +102,8 @@ pipeline {
             }
             post {
                 success {
-                    echo '✅ DEV deployment successful! URL: http://localhost:3001'
+                    echo '✅ DEV deployment successful!'
+                    echo '🔗 URL: http://localhost:3001'
                 }
                 failure {
                     echo '❌ DEV deployment failed!'
@@ -93,7 +112,7 @@ pipeline {
         }
 
         // ============================================
-        // STAGE 5: Deploy to QA (only on qa branch)
+        // STAGE 6: Deploy to QA (qa branch only)
         // ============================================
         stage('Deploy to QA') {
             when {
@@ -108,7 +127,8 @@ pipeline {
             }
             post {
                 success {
-                    echo '✅ QA deployment successful! URL: http://localhost:3002'
+                    echo '✅ QA deployment successful!'
+                    echo '🔗 URL: http://localhost:3002'
                 }
                 failure {
                     echo '❌ QA deployment failed!'
@@ -117,7 +137,7 @@ pipeline {
         }
 
         // ============================================
-        // STAGE 6: Deploy to STAGING (only on staging/main branch)
+        // STAGE 7: Deploy to STAGING (staging branch only)
         // ============================================
         stage('Deploy to STAGING') {
             when {
@@ -132,13 +152,14 @@ pipeline {
             }
             post {
                 success {
-                    echo '✅ STAGING deployment successful! URL: http://localhost:3004'
+                    echo '✅ STAGING deployment successful!'
+                    echo '🔗 URL: http://localhost:3004'
                 }
             }
         }
 
         // ============================================
-        // STAGE 7: Deploy to PRODUCTION (only on main branch)
+        // STAGE 8: Deploy to PRODUCTION (main branch only)
         // ============================================
         stage('Deploy to PRODUCTION') {
             when {
@@ -154,7 +175,8 @@ pipeline {
             }
             post {
                 success {
-                    echo '✅ PRODUCTION deployment successful! URL: http://localhost:3003'
+                    echo '✅ PRODUCTION deployment successful!'
+                    echo '🔗 URL: http://localhost:3003'
                 }
                 failure {
                     echo '❌ PRODUCTION deployment failed!'
@@ -163,14 +185,17 @@ pipeline {
         }
 
         // ============================================
-        // STAGE 8: Notify
+        // STAGE 9: Notify
         // ============================================
         stage('Notify') {
             steps {
                 script {
                     def status = currentBuild.currentResult == 'SUCCESS' ? '✅ SUCCESS' : '❌ FAILED'
-                    echo "Pipeline ${status} for branch: ${env.BRANCH_NAME}"
-                    echo "Build URL: ${env.BUILD_URL}"
+                    echo "============================================"
+                    echo "  Pipeline ${status}"
+                    echo "  Branch: ${env.BRANCH_NAME}"
+                    echo "  Build: ${env.BUILD_URL}"
+                    echo "============================================"
                 }
             }
         }
@@ -179,9 +204,7 @@ pipeline {
     post {
         always {
             echo 'Pipeline completed. Cleaning up...'
-            sh '''
-                docker image prune -f 2>/dev/null || true
-            '''
+            sh 'docker image prune -f 2>/dev/null || true'
         }
         success {
             echo '🎉 Pipeline completed successfully!'
