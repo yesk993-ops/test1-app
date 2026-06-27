@@ -24,7 +24,7 @@ FROM node:20-alpine
 
 # Add labels for metadata
 LABEL maintainer="DevOps Demo"
-LABEL version="1.0.0"
+LABEL version="2.0.0-dev"
 LABEL description="Jenkins Branch Demo App"
 
 # Create non-root user
@@ -51,8 +51,8 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
 # Default environment variables
 ENV NODE_ENV=production
 ENV PORT=3000
-ENV APP_VERSION=1.0.0
+ENV APP_VERSION=2.0.0-dev
 ENV ENVIRONMENT=development
-ENV GIT_BRANCH=main
+ENV GIT_BRANCH=dev
 
 CMD ["node", "server.js"]

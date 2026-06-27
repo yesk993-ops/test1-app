@@ -62,6 +62,20 @@ async function runTests() {
         // Test 7: Health endpoint contains uptime
         assert(typeof healthData.uptime === 'number', 'Health endpoint contains uptime');
 
+        // Test 8: API Info endpoint returns 200
+        const infoRes = await makeRequest('/api/info');
+        assert(infoRes.status === 200, 'API Info endpoint returns HTTP 200');
+
+        // Test 9: API Info endpoint returns valid JSON with all fields
+        const infoData = JSON.parse(infoRes.body);
+        assert(typeof infoData.app === 'string', 'API Info contains app name');
+        assert(typeof infoData.version === 'string', 'API Info contains version');
+        assert(typeof infoData.environment === 'string', 'API Info contains environment');
+        assert(typeof infoData.branch === 'string', 'API Info contains branch');
+        assert(typeof infoData.uptime === 'number', 'API Info contains uptime');
+        assert(typeof infoData.memory === 'object', 'API Info contains memory usage');
+        assert(typeof infoData.timestamp === 'string', 'API Info contains timestamp');
+
     } catch (err) {
         console.log(`  ❌ ERROR: ${err.message}`);
         failed++;
