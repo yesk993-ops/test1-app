@@ -36,6 +36,7 @@ WORKDIR /app
 # Copy only production artifacts from builder
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/server.js ./
+COPY --from=builder /app/test.js ./
 COPY --from=builder /app/package.json ./
 
 # Use non-root user
@@ -53,6 +54,6 @@ ENV NODE_ENV=production
 ENV PORT=3000
 ENV APP_VERSION=1.0.0
 ENV ENVIRONMENT=development
-ENV GIT_BRANCH=main
+ENV GIT_BRANCH=prod
 
 CMD ["node", "server.js"]
