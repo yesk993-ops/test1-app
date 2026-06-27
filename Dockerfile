@@ -36,6 +36,7 @@ WORKDIR /app
 # Copy only production artifacts from builder
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/server.js ./
+COPY --from=builder /app/test.js ./
 COPY --from=builder /app/package.json ./
 
 # Use non-root user
