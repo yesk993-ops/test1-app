@@ -159,7 +159,46 @@ pipeline {
         }
 
         // ============================================
-        // STAGE 8: Deploy to PRODUCTION (main branch only)
+        // STAGE 8: Production Approval (main branch only)
+        // ============================================
+        stage('Approval') {
+            when {
+                branch 'main'
+            }
+            steps {
+                script {
+                    echo "============================================"
+                    echo "  🛑 PRODUCTION DEPLOYMENT REQUEST"
+                    echo "============================================"
+                    echo "  Branch:    ${env.BRANCH_NAME}"
+                    echo "  Commit:    ${env.GIT_COMMIT?.take(8)}"
+                    echo "  Build:     #${env.BUILD_NUMBER}"
+                    echo "  Pipeline:  ${env.BUILD_URL}"
+                    echo "============================================"
+
+                    // Ask for approval — pauses pipeline until someone clicks "Proceed"
+                    // To restrict: add submitter: 'admin,jenkins-admin' inside input()
+                    input (
+                        message: '🚀 Ready to deploy to PRODUCTION?',
+                        ok: 'Yes, Deploy to Production!',
+                        parameters: [
+                            string(
+                                name: 'APPROVAL_NOTE',
+                                defaultValue: '',
+                                description: 'Optional: Add a note for this deployment (e.g., ticket number, change reason)'
+                            )
+                        ]
+                    )
+                    echo "✅ Approved by: ${currentBuild.getBuildCauses('hudson.model.Cause$UserIdCause')[0]?.userId ?: 'SYSTEM'}"
+                    if (env.APPROVAL_NOTE?.trim()) {
+                        echo "📝 Note: ${env.APPROVAL_NOTE}"
+                    }
+                }
+            }
+        }
+
+        // ============================================
+        // STAGE 9: Deploy to PRODUCTION (main branch only)
         // ============================================
         stage('Deploy to PRODUCTION') {
             when {
@@ -167,7 +206,6 @@ pipeline {
             }
             steps {
                 echo '🎯 Deploying to PRODUCTION...'
-                input message: 'Deploy to Production?', ok: 'Yes, Deploy!'
                 sh '''
                     docker compose down 2>/dev/null || true
                     docker compose up -d app-prod
@@ -185,7 +223,7 @@ pipeline {
         }
 
         // ============================================
-        // STAGE 9: Notify
+        // STAGE 10: Notify
         // ============================================
         stage('Notify') {
             steps {
