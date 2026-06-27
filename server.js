@@ -1,10 +1,11 @@
 const http = require('http');
 
 const PORT = process.env.PORT || 3000;
-const APP_VERSION = process.env.APP_VERSION || '1.0.0';
+const APP_VERSION = process.env.APP_VERSION || '2.0.0';
 const ENVIRONMENT = process.env.ENVIRONMENT || 'development';
-const BRANCH = process.env.GIT_BRANCH || 'main';
+const BRANCH = process.env.GIT_BRANCH || 'dev';
 const COMMIT_MSG = process.env.COMMIT_MSG || 'N/A';
+const APP_NAME = 'jenkins-branch-demo';
 
 const html = `
 <!DOCTYPE html>
@@ -121,6 +122,20 @@ const server = http.createServer((req, res) => {
             environment: ENVIRONMENT,
             branch: BRANCH,
             uptime: process.uptime()
+        }));
+        return;
+    }
+
+    if (req.url === '/api/info') {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({
+            app: APP_NAME,
+            version: APP_VERSION,
+            environment: ENVIRONMENT,
+            branch: BRANCH,
+            uptime: process.uptime(),
+            memory: process.memoryUsage(),
+            timestamp: new Date().toISOString()
         }));
         return;
     }

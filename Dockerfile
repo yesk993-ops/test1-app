@@ -8,7 +8,7 @@ WORKDIR /app
 # Copy package files first for better caching
 COPY package*.json ./
 
-# Install dependencies
+# Install dependencies (ensure node_modules exists even if empty)
 RUN npm ci --only=production && mkdir -p node_modules
 
 # Copy application code
@@ -24,7 +24,7 @@ FROM node:20-alpine
 
 # Add labels for metadata
 LABEL maintainer="DevOps Demo"
-LABEL version="1.0.0"
+LABEL version="2.0.0"
 LABEL description="Jenkins Branch Demo App"
 
 # Create non-root user
@@ -52,8 +52,8 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
 # Default environment variables
 ENV NODE_ENV=production
 ENV PORT=3000
-ENV APP_VERSION=1.0.0
-ENV ENVIRONMENT=development
+ENV APP_VERSION=2.0.0
+ENV ENVIRONMENT=production
 ENV GIT_BRANCH=prod
 
 CMD ["node", "server.js"]
