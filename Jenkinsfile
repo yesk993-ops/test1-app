@@ -78,8 +78,8 @@ pipeline {
             steps {
                 echo '🚀 Deploying to DEV environment...'
                 sh '''
-                    docker-compose down -f docker-compose.dev.yml 2>/dev/null || true
-                    docker-compose up -d app-dev
+                    docker compose down 2>/dev/null || true
+                    docker compose up -d app-dev
                 '''
             }
             post {
@@ -102,8 +102,8 @@ pipeline {
             steps {
                 echo '🧪 Deploying to QA environment...'
                 sh '''
-                    docker-compose down -f docker-compose.qa.yml 2>/dev/null || true
-                    docker-compose up -d app-qa
+                    docker compose down 2>/dev/null || true
+                    docker compose up -d app-qa
                 '''
             }
             post {
@@ -126,13 +126,13 @@ pipeline {
             steps {
                 echo '🔄 Deploying to STAGING environment...'
                 sh '''
-                    docker-compose down -f docker-compose.staging.yml 2>/dev/null || true
-                    docker-compose up -d app-staging
+                    docker compose down 2>/dev/null || true
+                    docker compose up -d app-staging
                 '''
             }
             post {
                 success {
-                    echo '✅ STAGING deployment successful! URL: http://localhost:3003'
+                    echo '✅ STAGING deployment successful! URL: http://localhost:3004'
                 }
             }
         }
@@ -148,8 +148,8 @@ pipeline {
                 echo '🎯 Deploying to PRODUCTION...'
                 input message: 'Deploy to Production?', ok: 'Yes, Deploy!'
                 sh '''
-                    docker-compose down -f docker-compose.prod.yml 2>/dev/null || true
-                    docker-compose up -d app-prod
+                    docker compose down 2>/dev/null || true
+                    docker compose up -d app-prod
                 '''
             }
             post {

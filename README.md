@@ -92,7 +92,7 @@ git commit -m "feat: add login button"
 # Step 3: Push to remote
 git push origin feature/add-login-button
 
-# Step 4: Create PR on GitHub
+# Step 4: Create PR on GitHub (or use gh CLI)
 gh pr create --base dev --head feature/add-login-button \
   --title "Add Login Button" \
   --body "Added a responsive login button to the homepage"
@@ -168,7 +168,7 @@ stage('Deploy to DEV') {
         branch 'dev'    // ← This condition gates the stage
     }
     steps {
-        sh 'docker-compose up -d app-dev'
+        sh 'docker compose up -d app-dev'
     }
 }
 
@@ -178,7 +178,7 @@ stage('Deploy to QA') {
         branch 'qa'
     }
     steps {
-        sh 'docker-compose up -d app-qa'
+        sh 'docker compose up -d app-qa'
     }
 }
 
@@ -189,7 +189,7 @@ stage('Deploy to PRODUCTION') {
     }
     steps {
         input message: 'Deploy to Production?'  // ← Human approval
-        sh 'docker-compose up -d app-prod'
+        sh 'docker compose up -d app-prod'
     }
 }
 ```
@@ -202,7 +202,7 @@ stage('Deploy to PRODUCTION') {
 
 ```bash
 # Install Docker
-sudo apt update && sudo apt install -y docker.io docker-compose
+sudo apt update && sudo apt install -y docker.io docker compose
 sudo usermod -aG docker $USER
 # Log out and back in for docker group changes
 
@@ -234,7 +234,7 @@ git checkout main
 git checkout -b prod
 
 # 4. Build and run all environments with Docker
-docker-compose up -d --build
+docker compose up -d --build
 
 # 5. Verify
 curl http://localhost:3001/health  # Dev
@@ -285,7 +285,7 @@ git push origin main
 
 ```bash
 # Build for specific environment
-ENVIRONMENT=dev docker-compose up -d app-dev
+ENVIRONMENT=dev docker compose up -d app-dev
 
 # Check running containers
 docker ps | grep jenkins-demo
@@ -294,10 +294,10 @@ docker ps | grep jenkins-demo
 docker logs jenkins-demo-dev -f
 
 # Stop specific environment
-docker-compose stop app-dev
+docker compose stop app-dev
 
 # Restart all
-docker-compose down && docker-compose up -d --build
+docker compose down && docker compose up -d --build
 ```
 
 ---
@@ -394,7 +394,7 @@ Merge to main
 2. **Use descriptive commit messages**: `feat:`, `fix:`, `chore:`, `docs:`
 3. **Keep PRs small** - easier to review and merge
 4. **Check Jenkins dashboard** after pushes to see pipeline status
-5. **Use `docker-compose logs -f`** to watch deployments in real-time
+5. **Use `docker compose logs -f`** to watch deployments in real-time
 
 ---
 
@@ -402,7 +402,7 @@ Merge to main
 
 | Issue | Solution |
 |-------|----------|
-| Port already in use | `docker-compose down && docker-compose up -d` |
+| Port already in use | `docker compose down && docker compose up -d` |
 | Jenkins not starting | `sudo systemctl restart jenkins` |
 | Permission denied | `sudo usermod -aG docker $USER` then logout/login |
 | Build fails | Check `docker logs <container-name>` |
