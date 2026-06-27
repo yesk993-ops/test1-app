@@ -1,7 +1,7 @@
 const http = require('http');
 
 const PORT = process.env.PORT || 3001;
-const APP_VERSION = process.env.APP_VERSION || '1.0.0';
+const APP_VERSION = process.env.APP_VERSION || '2.0.0';
 
 let server;
 let passed = 0;
