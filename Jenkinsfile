@@ -9,8 +9,10 @@ pipeline {
     // Environment variables available to all stages
     environment {
         APP_NAME = 'jenkins-branch-demo'
-        DOCKER_REGISTRY = 'docker.io/your-registry'
-        DOCKER_IMAGE = "${DOCKER_REGISTRY}/${APP_NAME}"
+        DOCKER_HUB_CREDS = credentials('docker-hub-creds')
+        SONAR_TOKEN = credentials('sonarqube-token')
+        SONAR_HOST_URL = 'http://192.168.122.151:9000/'
+        DOCKER_IMAGE = "${DOCKER_HUB_CREDS_USR}/${APP_NAME}"
     }
 
     options {
@@ -48,7 +50,19 @@ pipeline {
         }
 
         // ============================================
-        // STAGE 2: Build & Test (runs on ALL branches & PRs)
+        // STAGE 2: Docker Login (uses docker-hub-creds)
+        // ============================================
+        stage('Docker Login') {
+            steps {
+                echo '🔐 Logging in to Docker Hub...'
+                withCredentials([usernamePassword(credentialsId: 'docker-hub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    sh 'echo "${DOCKER_PASS}" | docker login -u "${DOCKER_USER}" --password-stdin'
+                }
+            }
+        }
+
+        // ============================================
+        // STAGE 3: Build & Test (runs on ALL branches & PRs)
         // ============================================
         stage('Build & Test') {
             steps {
@@ -61,17 +75,28 @@ pipeline {
         }
 
         // ============================================
-        // STAGE 3: Code Quality (runs on ALL branches & PRs)
+        // STAGE 4: Code Quality & SonarQube Analysis
         // ============================================
         stage('Code Quality') {
             steps {
-                echo '🔍 Running code quality checks...'
+                echo '🔍 Running code quality checks and SonarQube analysis...'
                 sh 'docker run --rm ${DOCKER_IMAGE}:${BUILD_NUMBER} npm run lint'
+                sh '''
+                    docker run --rm \
+                        --network host \
+                        -v "$(pwd):/usr/src" \
+                        sonarsource/sonar-scanner-cli:latest \
+                        sonar-scanner \
+                        -Dsonar.projectKey=jenkins-branch-demo \
+                        -Dsonar.sources=. \
+                        -Dsonar.host.url="${SONAR_HOST_URL}" \
+                        -Dsonar.token="${SONAR_TOKEN}"
+                '''
             }
         }
 
         // ============================================
-        // STAGE 4: PR Validation (ONLY for Pull Requests)
+        // STAGE 5: PR Validation (ONLY for Pull Requests)
         // ============================================
         stage('PR Validation') {
             when {
@@ -87,7 +112,7 @@ pipeline {
         }
 
         // ============================================
-        // STAGE 5: Deploy to DEV (dev branch only)
+        // STAGE 6: Deploy to DEV (dev branch only)
         // ============================================
         stage('Deploy to DEV') {
             when {
@@ -112,7 +137,7 @@ pipeline {
         }
 
         // ============================================
-        // STAGE 6: Deploy to QA (qa branch only)
+        // STAGE 7: Deploy to QA (qa branch only)
         // ============================================
         stage('Deploy to QA') {
             when {
@@ -137,7 +162,7 @@ pipeline {
         }
 
         // ============================================
-        // STAGE 7: Deploy to STAGING (staging branch only)
+        // STAGE 8: Deploy to STAGING (staging branch only)
         // ============================================
         stage('Deploy to STAGING') {
             when {
@@ -159,7 +184,7 @@ pipeline {
         }
 
         // ============================================
-        // STAGE 8: Production Approval (main branch only)
+        // STAGE 9: Production Approval (main branch only)
         // ============================================
         stage('Approval') {
             when {
@@ -198,7 +223,7 @@ pipeline {
         }
 
         // ============================================
-        // STAGE 9: Deploy to PRODUCTION (main branch only)
+        // STAGE 10: Deploy to PRODUCTION (main branch only)
         // ============================================
         stage('Deploy to PRODUCTION') {
             when {
@@ -223,7 +248,7 @@ pipeline {
         }
 
         // ============================================
-        // STAGE 10: Notify
+        // STAGE 11: Notify
         // ============================================
         stage('Notify') {
             steps {
